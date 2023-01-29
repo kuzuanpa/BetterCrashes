@@ -1,7 +1,7 @@
 /*
- *This file is from
- *https://github.com/DimensionalDevelopment/VanillaFix/blob/master/src/main/java/org/dimdev/vanillafix/crashes/StateManager.java
- *The source file uses the MIT License.
+ * This file is from
+ * https://github.com/DimensionalDevelopment/VanillaFix/blob/master/src/main/java/org/dimdev/vanillafix/crashes/
+ * StateManager.java The source file uses the MIT License.
  */
 
 package vfyjxf.bettercrashes.utils;
@@ -15,7 +15,9 @@ import java.util.Set;
  * @author Runemoro
  */
 public class StateManager {
+
     public interface IResettable {
+
         default void register() {
             resettableRefs.add(new WeakReference<>(this));
         }

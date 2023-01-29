@@ -1,8 +1,10 @@
 package vfyjxf.bettercrashes;
 
-import cpw.mods.fml.common.Loader;
 import java.io.File;
+
 import net.minecraftforge.common.config.Configuration;
+
+import cpw.mods.fml.common.Loader;
 
 public class BetterCrashesConfig {
 

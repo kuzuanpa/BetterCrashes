@@ -1,7 +1,7 @@
 /*
- *This file is from
- *https://github.com/DimensionalDevelopment/VanillaFix/blob/master/src/main/java/org/dimdev/vanillafix/crashes/StacktraceDeobfuscator.java
- *The source file uses the MIT License.
+ * This file is from
+ * https://github.com/DimensionalDevelopment/VanillaFix/blob/master/src/main/java/org/dimdev/vanillafix/crashes/
+ * StacktraceDeobfuscator.java The source file uses the MIT License.
  */
 
 package vfyjxf.bettercrashes.utils;
@@ -20,13 +20,14 @@ import java.util.zip.ZipInputStream;
  * @author Runemoro
  */
 public final class StacktraceDeobfuscator {
-    private static final boolean DEBUG_IN_DEV =
-            false; // Makes this MCP -> SRG for testing in dev. Don't forget to set to false when done!
+
+    private static final boolean DEBUG_IN_DEV = false; // Makes this MCP -> SRG for testing in dev. Don't forget to set
+                                                       // to false when done!
     private static HashMap<String, String> srgMcpMethodMap = null;
 
     /**
-     * If the file does not exits, downloads latest method mappings and saves them to it.
-     * Initializes a HashMap between obfuscated and deobfuscated names from that file.
+     * If the file does not exits, downloads latest method mappings and saves them to it. Initializes a HashMap between
+     * obfuscated and deobfuscated names from that file.
      */
     public static void init(File mappings) {
         if (srgMcpMethodMap != null) return;
@@ -35,8 +36,8 @@ public final class StacktraceDeobfuscator {
         if (!mappings.exists()) {
             HttpURLConnection connection = null;
             try {
-                URL mappingsURL =
-                        new URL("http://export.mcpbot.bspk.rs/mcp_stable_nodoc/39-1.12/mcp_stable_nodoc-39-1.12.zip");
+                URL mappingsURL = new URL(
+                        "http://export.mcpbot.bspk.rs/mcp_stable_nodoc/39-1.12/mcp_stable_nodoc-39-1.12.zip");
                 connection = (HttpURLConnection) mappingsURL.openConnection();
                 connection.setDoInput(true);
                 connection.connect();
@@ -74,9 +75,8 @@ public final class StacktraceDeobfuscator {
                 String mappingLine = scanner.nextLine();
                 int commaIndex = mappingLine.indexOf(',');
                 String srgName = mappingLine.substring(0, commaIndex);
-                String mcpName = mappingLine.substring(
-                        commaIndex + 1,
-                        commaIndex + 1 + mappingLine.substring(commaIndex + 1).indexOf(','));
+                String mcpName = mappingLine
+                        .substring(commaIndex + 1, commaIndex + 1 + mappingLine.substring(commaIndex + 1).indexOf(','));
 
                 // System.out.println(srgName + " <=> " + mcpName);
                 if (!DEBUG_IN_DEV) {
@@ -108,7 +108,10 @@ public final class StacktraceDeobfuscator {
         int index = 0;
         for (StackTraceElement el : stackTrace) {
             stackTrace[index++] = new StackTraceElement(
-                    el.getClassName(), deobfuscateMethodName(el.getMethodName()), el.getFileName(), el.getLineNumber());
+                    el.getClassName(),
+                    deobfuscateMethodName(el.getMethodName()),
+                    el.getFileName(),
+                    el.getLineNumber());
         }
         return stackTrace;
     }

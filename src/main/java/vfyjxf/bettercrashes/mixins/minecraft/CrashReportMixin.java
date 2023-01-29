@@ -1,12 +1,11 @@
 /*
- *This file is from
- *https://github.com/DimensionalDevelopment/VanillaFix/blob/master/src/main/java/org/dimdev/vanillafix/crashes/mixins/MixinCrashReport.java
- *The source file uses the MIT License.
+ * This file is from
+ * https://github.com/DimensionalDevelopment/VanillaFix/blob/master/src/main/java/org/dimdev/vanillafix/crashes/mixins/
+ * MixinCrashReport.java The source file uses the MIT License.
  */
 
 package vfyjxf.bettercrashes.mixins.minecraft;
 
-import cpw.mods.fml.common.ModContainer;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
@@ -14,8 +13,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.spongepowered.asm.mixin.Final;
@@ -25,12 +26,15 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
 import vfyjxf.bettercrashes.utils.IPatchedCrashReport;
 import vfyjxf.bettercrashes.utils.ModIdentifier;
 import vfyjxf.bettercrashes.utils.StacktraceDeobfuscator;
+import cpw.mods.fml.common.ModContainer;
 
 @Mixin(value = CrashReport.class, priority = 500)
 public class CrashReportMixin implements IPatchedCrashReport {
+
     @Shadow
     @Final
     private CrashReportCategory theReportCategory;
@@ -58,6 +62,7 @@ public class CrashReportMixin implements IPatchedCrashReport {
     public Set<ModContainer> getSuspectedMods() {
         return suspectedMods;
     }
+
     /** @reason Adds a list of mods which may have caused the crash to the report. */
     @Inject(method = "populateEnvironment", at = @At("TAIL"))
     private void afterPopulateEnvironment(CallbackInfo ci) {
@@ -95,20 +100,11 @@ public class CrashReportMixin implements IPatchedCrashReport {
     public String getCompleteReport() {
         StringBuilder builder = new StringBuilder();
 
-        builder.append("---- Minecraft Crash Report ----\n")
-                .append("// ")
-                .append(getVanillaFixComment())
-                .append("\n\n")
-                .append("Time: ")
-                .append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(new Date()))
-                .append("\n")
-                .append("Description: ")
-                .append(description)
-                .append("\n\n")
-                .append(stacktraceToString(cause)
-                        .replace(
-                                "\t",
-                                "    ")) // Vanilla's getCauseStackTraceOrString doesn't print causes and suppressed
+        builder.append("---- Minecraft Crash Report ----\n").append("// ").append(getVanillaFixComment()).append("\n\n")
+                .append("Time: ").append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(new Date())).append("\n")
+                .append("Description: ").append(description).append("\n\n")
+                .append(stacktraceToString(cause).replace("\t", "    ")) // Vanilla's getCauseStackTraceOrString doesn't
+                                                                         // print causes and suppressed
                 // exceptions
                 .append(
                         "\n\nA detailed walkthrough of the error, its code path and all known details is as follows:\n");
@@ -149,8 +145,7 @@ public class CrashReportMixin implements IPatchedCrashReport {
                 String author = mod.getMetadata().authorList.get(0);
                 return "I blame " + author + ".";
             }
-        } catch (Throwable ignored) {
-        }
+        } catch (Throwable ignored) {}
 
         return getWittyComment();
     }

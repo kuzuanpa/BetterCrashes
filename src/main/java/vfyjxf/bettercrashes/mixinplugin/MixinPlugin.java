@@ -12,12 +12,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import net.minecraft.launchwrapper.Launch;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import org.spongepowered.libraries.org.objectweb.asm.tree.ClassNode;
+
 import ru.timeconqueror.spongemixins.MinecraftURLClassPath;
 
 public class MixinPlugin implements IMixinConfigPlugin {
@@ -90,11 +93,7 @@ public class MixinPlugin implements IMixinConfigPlugin {
 
     public static File findJarOf(final TargetedMod mod) {
         try {
-            return walk(MODS_DIRECTORY_PATH)
-                    .filter(mod::isMatchingJar)
-                    .map(Path::toFile)
-                    .findFirst()
-                    .orElse(null);
+            return walk(MODS_DIRECTORY_PATH).filter(mod::isMatchingJar).map(Path::toFile).findFirst().orElse(null);
         } catch (IOException e) {
             e.printStackTrace();
             return null;

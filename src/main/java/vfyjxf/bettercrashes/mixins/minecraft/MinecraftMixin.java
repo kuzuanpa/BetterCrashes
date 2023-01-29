@@ -1,16 +1,15 @@
 /*
- *This file is modified based on
- *https://github.com/DimensionalDevelopment/VanillaFix/blob/master/src/main/java/org/dimdev/vanillafix/crashes/mixins/client/MixinMinecraft.java
- *The source file uses the MIT License.
+ * This file is modified based on
+ * https://github.com/DimensionalDevelopment/VanillaFix/blob/master/src/main/java/org/dimdev/vanillafix/crashes/mixins/
+ * client/MixinMinecraft.java The source file uses the MIT License.
  */
 
 package vfyjxf.bettercrashes.mixins.minecraft;
 
-import cpw.mods.fml.client.SplashProgress;
-import cpw.mods.fml.common.Loader;
 import java.io.IOException;
 import java.util.List;
 import java.util.Queue;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.*;
@@ -29,6 +28,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.MinecraftError;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
+
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Mouse;
@@ -38,11 +38,14 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+
 import vfyjxf.bettercrashes.BetterCrashesConfig;
 import vfyjxf.bettercrashes.utils.CrashUtils;
 import vfyjxf.bettercrashes.utils.GuiCrashScreen;
 import vfyjxf.bettercrashes.utils.GuiInitErrorScreen;
 import vfyjxf.bettercrashes.utils.StateManager;
+import cpw.mods.fml.client.SplashProgress;
+import cpw.mods.fml.common.Loader;
 
 /**
  * @author Runemoro
@@ -201,8 +204,7 @@ public abstract class MinecraftMixin {
                     crashReporter = null;
                 }
             }
-        } catch (MinecraftError ignored) {
-        } finally {
+        } catch (MinecraftError ignored) {} finally {
             shutdownMinecraftApplet();
         }
     }
@@ -220,7 +222,7 @@ public abstract class MinecraftMixin {
             // Reset hasCrashed, debugCrashKeyPressTime, and crashIntegratedServerNextTick
             hasCrashed = false;
             field_83002_am = -1;
-            //            crashIntegratedServerNextTick = false;
+            // crashIntegratedServerNextTick = false;
 
             // Vanilla does this when switching to main menu but not our custom crash screen
             // nor the out of memory screen (see https://bugs.mojang.com/browse/MC-128953)
@@ -228,25 +230,24 @@ public abstract class MinecraftMixin {
             ingameGUI.getChatGUI().clearChatMessages();
 
             // Display the crash screen
-            //            runGUILoop(new GuiCrashScreen(report));
+            // runGUILoop(new GuiCrashScreen(report));
             displayGuiScreen(new GuiCrashScreen(report));
         } catch (Throwable t) {
             // The crash screen has crashed. Report it normally instead.
             logger.error(
-                    "An uncaught exception occured while displaying the crash screen, making normal report instead", t);
+                    "An uncaught exception occured while displaying the crash screen, making normal report instead",
+                    t);
             displayCrashReport(report);
             System.exit(report.getFile() != null ? -1 : -2);
         }
     }
 
     private void addInfoToCrash(CrashReport crashReport) {
-        crashReport
-                .getCategory()
+        crashReport.getCategory()
                 .addCrashSectionCallable("Client Crashes Since Restart", () -> String.valueOf(clientCrashCount));
-        crashReport
-                .getCategory()
-                .addCrashSectionCallable(
-                        "Integrated Server Crashes Since Restart", () -> String.valueOf(serverCrashCount));
+        crashReport.getCategory().addCrashSectionCallable(
+                "Integrated Server Crashes Since Restart",
+                () -> String.valueOf(serverCrashCount));
     }
 
     /**
@@ -261,14 +262,12 @@ public abstract class MinecraftMixin {
                     originalMemoryReserveSize = memoryReserve.length;
                     memoryReserve = new byte[0];
                 }
-            } catch (Throwable ignored) {
-            }
+            } catch (Throwable ignored) {}
 
             StateManager.resetStates();
 
             if (getNetHandler() != null) {
-                getNetHandler()
-                        .getNetworkManager()
+                getNetHandler().getNetworkManager()
                         .closeChannel(new ChatComponentText("[BetterCrashes] Client crashed"));
             }
             loadWorld(null);
@@ -280,16 +279,14 @@ public abstract class MinecraftMixin {
             if (originalMemoryReserveSize != -1) {
                 try {
                     memoryReserve = new byte[originalMemoryReserveSize];
-                } catch (Throwable ignored) {
-                }
+                } catch (Throwable ignored) {}
             }
             System.gc();
         } catch (Throwable t) {
             logger.error("Failed to reset state after a crash", t);
             try {
                 StateManager.resetStates();
-            } catch (Throwable ignored) {
-            }
+            } catch (Throwable ignored) {}
         }
     }
 
@@ -311,7 +308,10 @@ public abstract class MinecraftMixin {
 
             refreshResources(); // TODO: Why is this necessary?
             fontRenderer = new FontRenderer(
-                    gameSettings, new ResourceLocation("textures/font/ascii.png"), renderEngine, false);
+                    gameSettings,
+                    new ResourceLocation("textures/font/ascii.png"),
+                    renderEngine,
+                    false);
             mcResourceManager.registerReloadListener(fontRenderer);
 
             mcSoundHandler = new SoundHandler(mcResourceManager, gameSettings);
@@ -319,10 +319,9 @@ public abstract class MinecraftMixin {
 
             running = true;
             try {
-                //noinspection deprecation
+                // noinspection deprecation
                 SplashProgress.finish(); // Disable the forge splash progress screen
-            } catch (Throwable ignored) {
-            }
+            } catch (Throwable ignored) {}
             runGUILoop(new GuiInitErrorScreen(report));
         } catch (Throwable t) {
             logger.error(
@@ -339,8 +338,7 @@ public abstract class MinecraftMixin {
      */
     private void runGUILoop(GuiScreen screen) throws IOException {
         displayGuiScreen(screen);
-        while (running
-                && currentScreen != null
+        while (running && currentScreen != null
                 && !(currentScreen instanceof GuiMainMenu)
                 && !(Loader.isModLoaded("custommainmenu"))) {
             if (Display.isCreated() && Display.isCloseRequested()) {
@@ -358,8 +356,10 @@ public abstract class MinecraftMixin {
             GL11.glViewport(0, 0, displayWidth, displayHeight);
 
             // EntityRenderer.setupOverlayRendering
-            ScaledResolution scaledResolution =
-                    new ScaledResolution((Minecraft) (Object) this, displayWidth, displayHeight);
+            ScaledResolution scaledResolution = new ScaledResolution(
+                    (Minecraft) (Object) this,
+                    displayWidth,
+                    displayHeight);
             GL11.glClear(256);
             GL11.glMatrixMode(5889);
             GL11.glLoadIdentity();
