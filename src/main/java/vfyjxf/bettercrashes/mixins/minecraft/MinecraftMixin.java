@@ -39,13 +39,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
+import cpw.mods.fml.client.SplashProgress;
+import cpw.mods.fml.common.Loader;
 import vfyjxf.bettercrashes.BetterCrashesConfig;
 import vfyjxf.bettercrashes.utils.CrashUtils;
 import vfyjxf.bettercrashes.utils.GuiCrashScreen;
 import vfyjxf.bettercrashes.utils.GuiInitErrorScreen;
 import vfyjxf.bettercrashes.utils.StateManager;
-import cpw.mods.fml.client.SplashProgress;
-import cpw.mods.fml.common.Loader;
 
 /**
  * @author Runemoro
@@ -122,9 +122,8 @@ public abstract class MinecraftMixin {
     @Shadow
     public int displayHeight;
 
-    @SuppressWarnings("MixinAnnotationTarget")
     @Shadow
-    protected abstract void func_71384_a() throws LWJGLException; // func_71384_a --> startGame
+    protected abstract void startGame() throws LWJGLException;
 
     @Shadow
     public abstract void displayGuiScreen(GuiScreen guiScreenIn);
@@ -167,7 +166,7 @@ public abstract class MinecraftMixin {
     public void run() {
         running = true;
         try {
-            func_71384_a();
+            startGame();
         } catch (Throwable throwable) {
             CrashReport crashReport = CrashReport.makeCrashReport(throwable, "Initializing game");
             crashReport.makeCategory("Initialization");
@@ -235,7 +234,7 @@ public abstract class MinecraftMixin {
         } catch (Throwable t) {
             // The crash screen has crashed. Report it normally instead.
             logger.error(
-                    "An uncaught exception occured while displaying the crash screen, making normal report instead",
+                    "An uncaught exception occurred while displaying the crash screen, making normal report instead",
                     t);
             displayCrashReport(report);
             System.exit(report.getFile() != null ? -1 : -2);

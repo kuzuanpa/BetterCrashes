@@ -6,6 +6,9 @@
 
 package vfyjxf.bettercrashes.mixins.minecraft;
 
+import static vfyjxf.bettercrashes.BetterCrashes.MODID;
+
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
@@ -27,10 +30,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import cpw.mods.fml.common.ModContainer;
+import vfyjxf.bettercrashes.BetterCrashesConfig;
 import vfyjxf.bettercrashes.utils.IPatchedCrashReport;
 import vfyjxf.bettercrashes.utils.ModIdentifier;
 import vfyjxf.bettercrashes.utils.StacktraceDeobfuscator;
-import cpw.mods.fml.common.ModContainer;
 
 @Mixin(value = CrashReport.class, priority = 500)
 public class CrashReportMixin implements IPatchedCrashReport {
@@ -89,6 +93,9 @@ public class CrashReportMixin implements IPatchedCrashReport {
     /** @reason Deobfuscates the stacktrace using MCP mappings */
     @Inject(method = "populateEnvironment", at = @At("HEAD"))
     private void beforePopulateEnvironment(CallbackInfo ci) {
+        if (BetterCrashesConfig.stacktraceDeobfuscation) {
+            StacktraceDeobfuscator.init(new File(String.format("%s-stackdeobfuscator-methods.csv", MODID)));
+        }
         StacktraceDeobfuscator.deobfuscateThrowable(cause);
     }
 

@@ -6,13 +6,10 @@
 
 package vfyjxf.bettercrashes.utils;
 
-import static vfyjxf.bettercrashes.BetterCrashesConfig.isGTNH;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -25,12 +22,13 @@ import net.minecraft.crash.CrashReport;
 
 import org.apache.commons.lang3.StringUtils;
 
-import vfyjxf.bettercrashes.BetterCrashesConfig;
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import vfyjxf.bettercrashes.BetterCrashesConfig;
+import vfyjxf.bettercrashes.upload.CrashReportUpload;
 
 @SideOnly(Side.CLIENT)
 public abstract class GuiProblemScreen extends GuiScreen {
@@ -51,11 +49,9 @@ public abstract class GuiProblemScreen extends GuiScreen {
     }
 
     protected final CrashReport report;
-    private volatile String hasteLink = null;
+    private volatile URL pasteLink = null;
     private String modListString;
-    protected static final List<String> UNSUPPORTED_MOD_IDS = Arrays.asList();
     protected List<String> detectedUnsupportedModNames;
-    private static final String GTNH_ISSUE_TRACKER = "https://github.com/GTNewHorizons/GT-New-Horizons-Modpack/issues?q=label%3A%22Type%3A+Crash%22";
 
     public GuiProblemScreen(CrashReport report) {
         this.report = report;
@@ -81,7 +77,7 @@ public abstract class GuiProblemScreen extends GuiScreen {
                         110,
                         20,
                         I18n.format("bettercrashes.gui.common.uploadReportAndCopyLink")));
-        if (BetterCrashesConfig.isGTNH) {
+        if (StringUtils.isNotEmpty(BetterCrashesConfig.issueTrackerURL)) {
             buttonList.add(
                     new GuiButton(
                             3,
@@ -89,7 +85,7 @@ public abstract class GuiProblemScreen extends GuiScreen {
                             height / 4 + 120 + 12 + 25,
                             140,
                             20,
-                            I18n.format("bettercrashes.gui.common.gtnhIssueTracker")));
+                            I18n.format("bettercrashes.gui.common.issueTracker")));
         }
     }
 
@@ -105,7 +101,7 @@ public abstract class GuiProblemScreen extends GuiScreen {
             }
         }
         if (button.id == 2) {
-            if (hasteLink == null) {
+            if (pasteLink == null) {
                 button.enabled = false;
                 button.displayString = I18n.format("bettercrashes.gui.common.uploading");
                 Thread thread = new Thread("BetterCrashes report uploading") {
@@ -113,8 +109,10 @@ public abstract class GuiProblemScreen extends GuiScreen {
                     @Override
                     public void run() {
                         try {
-                            hasteLink = CrashReportUpload
-                                    .uploadToUbuntuPastebin("https://paste.ubuntu.com", report.getCompleteReport());
+                            pasteLink = CrashReportUpload.uploadCrashReport(report.getCompleteReport());
+                            if (pasteLink != null) {
+                                setClipboardString(pasteLink.toString());
+                            }
                             synchronized (button) {
                                 button.enabled = true;
                                 button.displayString = I18n.format("bettercrashes.gui.common.success");
@@ -130,15 +128,12 @@ public abstract class GuiProblemScreen extends GuiScreen {
                 };
                 thread.start();
             } else {
-                CrashUtils.openBrowser(hasteLink);
+                CrashUtils.openBrowser(pasteLink.toString());
             }
 
-            if (hasteLink != null) {
-                setClipboardString(hasteLink);
-            }
         }
         if (button.id == 3) {
-            CrashUtils.openBrowser(GTNH_ISSUE_TRACKER);
+            CrashUtils.openBrowser(BetterCrashesConfig.issueTrackerURL);
         }
     }
 
@@ -181,7 +176,7 @@ public abstract class GuiProblemScreen extends GuiScreen {
 
             drawCenteredString(
                     fontRendererObj,
-                    report.getFile() != null ? "\u00A7n" + report.getFile().getName()
+                    report.getFile() != null ? "§n" + report.getFile().getName()
                             : I18n.format("bettercrashes.gui.common.reportSaveFailed"),
                     width / 2,
                     y += 11,
@@ -192,23 +187,17 @@ public abstract class GuiProblemScreen extends GuiScreen {
         }
 
         y += 12;
-        y += drawLongString(
-                fontRendererObj,
-                I18n.format("bettercrashes.gui.common.paragraph3" + (isGTNH ? "_gtnh" : "")),
-                x,
-                y,
-                340,
-                textColor);
+        y += drawLongString(fontRendererObj, I18n.format("bettercrashes.gui.common.paragraph3"), x, y, 340, textColor);
 
         if (hasUnsupportedMods) {
-            drawString(fontRendererObj, I18n.format("bettercrashes.gui.common.paragraph4_gtnh"), x, y += 10, textColor);
+            drawString(fontRendererObj, I18n.format("bettercrashes.gui.common.paragraph4"), x, y += 10, textColor);
             drawCenteredString(
                     fontRendererObj,
                     StringUtils.join(detectedUnsupportedModNames, ", "),
                     width / 2,
                     y += 11,
                     0xE0E000);
-            drawString(fontRendererObj, I18n.format("bettercrashes.gui.common.paragraph5_gtnh"), x, y += 12, textColor);
+            drawString(fontRendererObj, I18n.format("bettercrashes.gui.common.paragraph5"), x, y += 12, textColor);
         }
 
         super.drawScreen(mouseX, mouseY, partialTicks);
@@ -243,19 +232,20 @@ public abstract class GuiProblemScreen extends GuiScreen {
     }
 
     protected List<String> getUnsupportedMods() {
-        if (!BetterCrashesConfig.isGTNH) {
-            return Collections.emptyList();
-        }
-        List<String> list = new ArrayList<>();
+        List<String> installedUnsupportedMods = new ArrayList<>();
         for (ModContainer mod : Loader.instance().getModList()) {
-            if (UNSUPPORTED_MOD_IDS.contains(mod.getModId())) {
-                list.add(mod.getName());
+            if (BetterCrashesConfig.unsupportedMods.contains(mod.getModId())) {
+                installedUnsupportedMods.add(mod.getName());
             }
         }
+
+        // Due to the nature of Optifine, it will very often need special
+        // consideration in bug reports.
         if (FMLClientHandler.instance().hasOptifine()) {
-            list.add("Optifine");
+            installedUnsupportedMods.add("Optifine");
         }
-        return list;
+
+        return installedUnsupportedMods;
     }
 
     private int getClientCrashCount() {
