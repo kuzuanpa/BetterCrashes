@@ -7,7 +7,6 @@
 package vfyjxf.bettercrashes.utils;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,25 +27,12 @@ import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import vfyjxf.bettercrashes.BetterCrashesConfig;
+import vfyjxf.bettercrashes.mixins.interfaces.CrashReportExt;
+import vfyjxf.bettercrashes.mixins.interfaces.MinecraftExt;
 import vfyjxf.bettercrashes.upload.CrashReportUpload;
 
 @SideOnly(Side.CLIENT)
 public abstract class GuiProblemScreen extends GuiScreen {
-
-    private static Field fieldClientCrashCount = null;
-    private static Field fieldServerCrashCount = null;
-
-    static {
-        try {
-            // these are actually reachable, see MinecraftMixin
-            fieldClientCrashCount = Minecraft.class.getDeclaredField("clientCrashCount");
-            fieldClientCrashCount.setAccessible(true);
-            fieldServerCrashCount = Minecraft.class.getDeclaredField("serverCrashCount");
-            fieldServerCrashCount.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     protected final CrashReport report;
     private volatile URL pasteLink = null;
@@ -205,7 +191,7 @@ public abstract class GuiProblemScreen extends GuiScreen {
 
     protected String getModListString() {
         if (modListString == null) {
-            final Set<ModContainer> suspectedMods = ((IPatchedCrashReport) report).betterCrashes$getSuspectedMods();
+            final Set<ModContainer> suspectedMods = ((CrashReportExt) report).betterCrashes$getSuspectedMods();
             if (suspectedMods == null) {
                 return modListString = I18n.format("bettercrashes.gui.common.identificationErrored");
             }
@@ -248,30 +234,16 @@ public abstract class GuiProblemScreen extends GuiScreen {
         return installedUnsupportedMods;
     }
 
-    private int getClientCrashCount() {
-        if (fieldClientCrashCount != null) {
-            try {
-                return (int) fieldClientCrashCount.get(Minecraft.getMinecraft());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return 0;
-    }
-
-    private int getServerCrashCount() {
-        if (fieldServerCrashCount != null) {
-            try {
-                return (int) fieldServerCrashCount.get(Minecraft.getMinecraft());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return 0;
-    }
-
     protected boolean isCrashLogExpectedToBeGenerated() {
         return getClientCrashCount() <= BetterCrashesConfig.crashLogLimitClient
                 && getServerCrashCount() <= BetterCrashesConfig.crashLogLimitServer;
+    }
+
+    private int getClientCrashCount() {
+        return ((MinecraftExt) Minecraft.getMinecraft()).betterCrashes$getClientCrashCount();
+    }
+
+    private int getServerCrashCount() {
+        return ((MinecraftExt) Minecraft.getMinecraft()).betterCrashes$getServerCrashCount();
     }
 }
