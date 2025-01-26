@@ -43,6 +43,9 @@ public final class StacktraceDeobfuscator {
     public static void init(File mappings) {
         if (srgMcpMethodMap != null) return;
 
+        BetterCrashes.logger.warn("Skipped deobfuscation");
+        if(true)return;
+        
         // Download the file if necessary
         if (!mappings.exists()) {
             BetterCrashes.logger.info("Downloading MCP method mappings to deobfuscate stacktrace");
